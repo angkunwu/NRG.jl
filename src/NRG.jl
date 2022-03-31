@@ -4,7 +4,11 @@ using LinearAlgebra
 
 #greet() = print("Hello World!")
 
-include("test.jl")
+export plusTwo
+
+plusTwo(x) = return x+2
+
+include("WilsonParam.jl")
 
 
 end # module
