@@ -1,27 +1,28 @@
-function KPMmomentToIntegral(mu::Vector{<:BigFloat}, Lam<:Float64, Precision::Int64, nmax::Int64, N::Int64, z::Float64)
-	"""
+#=
+function KPMmomentToIntegral(mu::Vector{<:BigFloat}, Lam::Float64, Precision::Int64, nmax::Int64, N::Int64, z::Float64)
+    """
 	Use KPM moment to compute logarithmic integrals with Jackson Kernel
 	With build-in paralization
 	Precision: precision of numerics
 	Lam: Logarithmic discretization parameter
 	nmax: Set max # of logarithmic intervals or min range
 	N: maximum Wilson chain sites
-	z: z average z \in [0,1)
+	z: z average z in [0,1)
 	"""
 	order = size(mu, 1) 
-	BinaryPrec = Int(round(log(10)*Precision/log(2))) # convert precision to binary precision
-	setprecision(BinaryPrec)
+    BinaryPrec = Int(round(log(10)*Precision/log(2))) # convert precision to binary precision
+    setprecision(BinaryPrec)
 
     g = zeros(BigFloat, order);	# Jackon kernel
     for k = 1:order
         g[k] = (order-k+2)*cos(pi*(k-1)/(order+1))+sin(pi*(k-1)/(order+1))*cot(pi/(order+1))/(order+1)
     end
 
-	epsilon = zeros(BigFloat,N); t = zeros(BigFloat,N);
+    epsilon = zeros(BigFloat,N); t = zeros(BigFloat,N);
     #xi0=vpa(g(1)*mu(1));  #xi0=xi0.*(xi0>Threshold);
     #epsilon(1)=vpa(g(2)*mu(2)); # Ekin at first site
 
-    theta = zeros(BigFloat,nmax+1);
+    	theta = zeros(BigFloat,nmax+1);
     theta[1]=acos(1);
     for k=2:nmax+1
         theta[k]=acos(Lam^(z-k+1));
@@ -65,13 +66,7 @@ function KPMmomentToIntegral(mu::Vector{<:BigFloat}, Lam<:Float64, Precision::In
 
 	return alphas, betas
 end
-
-
-
-
-
-
-
+=#
 
 
 

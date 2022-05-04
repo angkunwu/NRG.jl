@@ -1,4 +1,5 @@
 include("WilsonParam.jl")
+include("FractalFillings.jl")
 
 
 setprecision(300)
@@ -20,6 +21,14 @@ t, epsilon = IntegralToWilsonParam(alphas, betas, N, 300);
 
 
 
+Precision = 1000
+setprecision(Precision)
+Lam = BigFloat(5.0^(1/8))
+Nmax = 4000
+μ = 0.0
+Nwilson=70
+alphas, betas = ABwithmu(μ, Lam, Nmax)
+@time t, epsilon = IntegralToWilsonParam(alphas,betas,Nwilson,Precision)
 
 
 
