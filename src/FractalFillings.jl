@@ -9,23 +9,24 @@ function findinteraction(vec1, vec2)
     end
 end
 
-function obtainAlphaBeta(rangevec, fractalband, level; maxlevel = 30)
+function obtainAlphaBeta(rangevec, fractalband, level, μ; maxlevel = 30)
     """
     given range [left, right] and fractalband for specific level
     return the estimated alpha, beta integrals falling in the fractalband
     up to l=30 levels
+    Also the chemical potential shift μ is also important for beta integral
     """
     height = 0.5*(5.0/3)^level
     temp = findinteraction(rangevec, fractalband)
     if temp == fractalband
         alpha = 1/3^(level)
-        beta = 0.5 * 2/5^level * sum(fractalband) * height
+	beta = 0.5 * 2/5^level * (sum(fractalband)-2*μ) * height
         return alpha, beta
     end
 
     if level == maxlevel
         alpha = 1/3^(level)
-        beta = 0.5 * 2/5^level * sum(fractalband) * height
+	beta = 0.5 * 2/5^level * (sum(fractalband)-2*μ) * height
         return alpha, beta
     end
 
@@ -39,19 +40,19 @@ function obtainAlphaBeta(rangevec, fractalband, level; maxlevel = 30)
     beta = 0
     temp = findinteraction(rangevec, rangel)
     if ~isempty(temp)
-        nextalpha, nextbeta = obtainAlphaBeta(temp, rangel, level)
+        nextalpha, nextbeta = obtainAlphaBeta(temp, rangel, level,μ; maxlevel)
         alpha += nextalpha
         beta += nextbeta
     end
     temp = findinteraction(rangevec, rangec)
     if ~isempty(temp)
-        nextalpha, nextbeta = obtainAlphaBeta(temp, rangec, level)
+        nextalpha, nextbeta = obtainAlphaBeta(temp, rangec, level, μ; maxlevel)
         alpha += nextalpha
         beta += nextbeta
     end
     temp = findinteraction(rangevec, ranger)
     if ~isempty(temp)
-        nextalpha, nextbeta = obtainAlphaBeta(temp, ranger, level)
+        nextalpha, nextbeta = obtainAlphaBeta(temp, ranger, level, μ; maxlevel)
         alpha += nextalpha
         beta += nextbeta
     end
@@ -60,7 +61,7 @@ function obtainAlphaBeta(rangevec, fractalband, level; maxlevel = 30)
 end
 
 
-function ABwithmu(μ, Lam, N)
+function ABwithmu(μ, Lam, N; maxlevel=30, samescale=true)
     """
     compute alphas betas with some chemical potential
     return alphas betas as big float
@@ -69,12 +70,18 @@ function ABwithmu(μ, Lam, N)
     betas = zeros(BigFloat, N, 2)
     fractalband=[-1, 1]
     level = 0
-    scale = (1+abs(μ))
+    if samescale
+    	scalel = 1+abs(μ) 
+    	scaler = scalel
+    else
+	scalel = abs(-1-μ)
+        scaler = abs(1-μ)
+    end
     for k in 1:N
-        rangevec = [scale*Lam^(-k)+μ, scale*Lam^(1-k)+μ]
-        rangevecn = [μ-scale*Lam^(1-k), μ-scale*Lam^(-k)]
-        alphas[k, 1], betas[k, 1] = obtainAlphaBeta(rangevec, fractalband, level)
-        alphas[k, 2], betas[k, 2] = obtainAlphaBeta(rangevecn, fractalband, level)
+        rangevec = [scaler*Lam^(-k)+μ, scaler*Lam^(1-k)+μ]
+        rangevecn = [μ-scalel*Lam^(1-k), μ-scalel*Lam^(-k)]
+        alphas[k, 1], betas[k, 1] = obtainAlphaBeta(rangevec, fractalband, level, μ; maxlevel)
+        alphas[k, 2], betas[k, 2] = obtainAlphaBeta(rangevecn, fractalband, level, μ; maxlevel)
     end
     return alphas, betas
 end 

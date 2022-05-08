@@ -25,6 +25,10 @@ Manifest.toml
 
 # Ignore data
 *.csv
+*.mat
 
 # Ignore Visual studio
 .vscode/
+
+# Ignore matlab codes
+*.m
