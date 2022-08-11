@@ -10,11 +10,11 @@ Lam = 3.0
 U = 0.1
 ef = -U/2
 V = 0.05
-Ns = 2000
+Ns = 4000
 wilsons = readdlm("/Users/angkunwu/NRG/test/FlatWilsonParam.txt", ',', Float64)
 t, epsilon = wilsons[:,1], wilsons[:,2]
-
-GS, GSQ, GSSz = NRG.runNRG(N,Lam,epsilon,t,U,ef,V,Ns);
+h = 10^(-8)
+GS, GSSz, Szimp = NRG.runNRG(N,Lam,epsilon,t,U,ef,V,Ns;h=h);
 barbetaKWW = 0.6
 ChiT, T = NRG.ChiImpFull(Lam,GS, GSSz; barbetaKWW)
 ChiT0, T = NRG.ConductionChi(N, Lam, epsilon,t; barbetaKWW)
@@ -27,9 +27,10 @@ Simp = Sent .- S0
 #plot(T, ChiImp, xaxis=:log, xlabel=L"T", ylabel=L"T\chi",legend=:bottomright)
 #hline!([1/8 1/4], linestyle=:dash)
 
-plot(T, Simp, xaxis=:log, xlabel=L"T", ylabel=L"S_imp",legend=:bottomright)
+plot(T, Simp, xaxis=:log, xlabel=L"T", ylabel=L"S_{imp}",legend=:bottomright)
 hline!([log(4) log(2)], linestyle=:dash)
 
+ChiLoc, T = NRG.ChiLocal(Lam, GS, Szimp, h;Nrelax=100)
 
 #=
 using NRG

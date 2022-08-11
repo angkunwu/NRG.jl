@@ -139,7 +139,53 @@ function SentropyFull(Λ::Number, GS::Vector{Vector{Float64}};  barbetaKWW = 0.6
 	return Sent, T
 end
 
-	
+"""
+Compute local chi
+Szimp is only the diagonal part of the whole matrix
+dynamically decrease tail states
+# implicit parameter
+barbetaKWW: representatively temperature
+Nrelax: relaxation space limit
+"""
+function ChiLocal(
+		Λ::Number, 
+		GS::Vector{Vector{Float64}}, 
+		Szimp::Vector{Vector{Float64}},
+		h::Number;
+		barbetaKWW::Number = 0.6,
+		Nrelax::Int64 = 50,
+		)
+	N = size(GS,1)+1
+	T = zeros(N-1)
+	Chi = zeros(N-1)
+	barbeta = (1+1/Λ)/barbetaKWW/2
+	ReachLimit = 0
+	for k = 1:N-1
+        	T[k]=Λ^(-(k-1)/2)*barbeta
+		Ns = size(GS[k],1)
+		power = floor(log(Ns)/log(4))
+		if ReachLimit == 0
+			if 4^power != Ns
+				ReachLimit = 1
+			elseif k > 1 && Ns/size(GS[k-1],1) < 4
+				ReachLimit = 1
+			end
+		end
+		SpaceSize = Ns
+		if ReachLimit == 1
+			val, index = findmin(abs.(cumsum(Szimp[k][end-Nrelax:end])))
+			SpaceSize = Ns - index + 1
+		end
+		Z = 0
+		for l = 1:SpaceSize
+                	Chi[k] += Szimp[k][l]*exp(-GS[k][l]/barbeta)
+                        Z += exp(-GS[k][l]/barbeta)
+                end
+                Chi[k] = -Chi[k] / (Z*h)
+	end
+	return Chi, T
+end
+
 
 
 

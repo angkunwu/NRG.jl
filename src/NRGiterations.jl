@@ -126,17 +126,12 @@ tol 10^(-8) for no magnetic field, otherwise 10^(-12)
 """
 function runNRG(N::Int64,Lam::Number,epsilon::Vector{<:Number},t::Vector{<:Number},U::Number,ef::Number,V::Number,Ns::Int64; h=0.0,tol=10^(-12))
     GS = Vector{Float64}[]
-    GSQ = Vector{Float64}[] # record Q at each step for each state
+    #GSQ = Vector{Float64}[] # record Q at each step for each state
     GSSz = Vector{Float64}[] # record Sz at each step for each state
+    Szimp = Vector{Float64}[] # obtain diagonal part of Sz impurity matrice for \chi_loc
 
-    #QSztemp = zeros(Ns*4, 2) # temp of QSz for higher dimension
-    #Mfimp1=zeros(Ns,Ns,N)  # keep track of impurity annilation operator
-    #Mfimp1 = zeros(Ns, N)  # keep track of diagonal part of impurity annilation operator
-    #Mfimp2=zeros(Ns,Ns,N) # 1 for spin up; 2 for spin down
-    #Szimp=zeros(Ns,Ns,N) # try to obtain Sz impurity matrice for \chi_loc
-    #Szimp = zeros(Ns, N) # obtain diagonal part of Sz impurity matrice for \chi_loc
     Sz = zeros(4, 4) 
-    Sz[2, 2], Sz[3, 3] = 1/2, 1/2
+    Sz[2, 2], Sz[3, 3] = 1/2, -1/2
 
     # Iterative diagonalization
     H0 = zeros(16, 16) # initial Hamiltonian, the basis chosen as 1 (no electron)
@@ -224,8 +219,16 @@ function runNRG(N::Int64,Lam::Number,epsilon::Vector{<:Number},t::Vector{<:Numbe
         return cop_old
     end
 
+    function transformOldOp(operator, permu, Vs)
+	    op_HD = kron(operator, eye(4))
+	    op_HD = op_HD[permu, permu]
+	    op_HD = Vs' * op_HD * Vs
+	    return op_HD
+    end
+
     Es = diag(Himp)
     cup_old, cdn_old= cup, cdn
+    Szimptemp = copy(Sz)
     for iteration = 0:N-1
         if iteration > 0
             hop = t[iteration]
@@ -234,18 +237,22 @@ function runNRG(N::Int64,Lam::Number,epsilon::Vector{<:Number},t::Vector{<:Numbe
         end
         @time NewEs, NewQSz, permu, NewVesc = NRGaddSite(Es, QSz, cup_old, cdn_old, hop, epsilon[iteration+1], iteration)
 	
+	NewSzimp = transformOldOp(Szimptemp, permu, NewVesc)
+
 	if iteration > 0 # record results only from the NRG site 2
         	push!(GS, NewEs)
-        	push!(GSQ, NewQSz[:,1])
+        	#push!(GSQ, NewQSz[:,1])
         	push!(GSSz, NewQSz[:,2])
+		push!(Szimp, diag(NewSzimp))
 	end
         cup_old = transformC(cup, permu, NewVesc)
         cdn_old = transformC(cdn, permu, NewVesc)
 
         Es = NewEs
         QSz = NewQSz
+	Szimptemp = NewSzimp
         @show iteration
     end
 
-    return GS, GSQ, GSSz
+    return GS, GSSz, Szimp
 end
