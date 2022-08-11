@@ -11,10 +11,10 @@ U = 0.1
 ef = -U/2
 V = 0.05
 Ns = 2000
-wilsons = readdlm("/Users/angkunwu/NRG/src/FlatWilsonParam.txt", ',', Float64)
+wilsons = readdlm("/Users/angkunwu/NRG/test/FlatWilsonParam.txt", ',', Float64)
 t, epsilon = wilsons[:,1], wilsons[:,2]
 
-GS, GSQ, GSSz = NRG.NRGtrunBlock(N,Lam,epsilon,t,U,ef,V,Ns);
+GS, GSQ, GSSz = NRG.runNRG(N,Lam,epsilon,t,U,ef,V,Ns);
 barbetaKWW = 0.6
 ChiT, T = NRG.ChiImpFull(Lam,GS, GSSz; barbetaKWW)
 ChiT0, T = NRG.ConductionChi(N, Lam, epsilon,t; barbetaKWW)

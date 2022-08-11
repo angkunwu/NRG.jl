@@ -124,7 +124,7 @@ end
 
 tol 10^(-8) for no magnetic field, otherwise 10^(-12)
 """
-function NRGtrunBlock(N::Int64,Lam::Number,epsilon::Vector{<:Number},t::Vector{<:Number},U::Number,ef::Number,V::Number,Ns::Int64; h=0.0,tol=10^(-12))
+function runNRG(N::Int64,Lam::Number,epsilon::Vector{<:Number},t::Vector{<:Number},U::Number,ef::Number,V::Number,Ns::Int64; h=0.0,tol=10^(-12))
     GS = Vector{Float64}[]
     GSQ = Vector{Float64}[] # record Q at each step for each state
     GSSz = Vector{Float64}[] # record Sz at each step for each state
