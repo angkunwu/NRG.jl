@@ -1,6 +1,6 @@
-#=
-function KPMmomentToIntegral(mu::Vector{<:BigFloat}, Lam::Float64, Precision::Int64, nmax::Int64, N::Int64, z::Float64)
-    """
+
+function KPMmomentToIntegral(mu::Vector{<:Number}, Lam::Number, Precision::Int64, nmax::Int64, N::Int64, z::Number)
+    	"""
 	Use KPM moment to compute logarithmic integrals with Jackson Kernel
 	With build-in paralization
 	Precision: precision of numerics
@@ -9,64 +9,63 @@ function KPMmomentToIntegral(mu::Vector{<:BigFloat}, Lam::Float64, Precision::In
 	N: maximum Wilson chain sites
 	z: z average z in [0,1)
 	"""
-	order = size(mu, 1) 
-    BinaryPrec = Int(round(log(10)*Precision/log(2))) # convert precision to binary precision
-    setprecision(BinaryPrec)
+    	order = size(mu, 1) 
+    	BinaryPrec = Int(round(log(10)*Precision/log(2))) # convert precision to binary precision
+    	setprecision(BinaryPrec)
 
-    g = zeros(BigFloat, order);	# Jackon kernel
-    for k = 1:order
-        g[k] = (order-k+2)*cos(pi*(k-1)/(order+1))+sin(pi*(k-1)/(order+1))*cot(pi/(order+1))/(order+1)
-    end
-
-    epsilon = zeros(BigFloat,N); t = zeros(BigFloat,N);
-    #xi0=vpa(g(1)*mu(1));  #xi0=xi0.*(xi0>Threshold);
-    #epsilon(1)=vpa(g(2)*mu(2)); # Ekin at first site
+    	g = zeros(BigFloat, order);	# Jackon kernel
+    	for k = 1:order
+		g[k] = ((order-k+2)*cos(pi*(k-1)/(order+1))+sin(pi*(k-1)/(order+1))*cot(pi/(order+1)))/(order+1)
+    	end
+	
+    	epsilon = zeros(BigFloat,N); t = zeros(BigFloat,N);
+    	#xi0=vpa(g(1)*mu(1));  #xi0=xi0.*(xi0>Threshold);
+    	#epsilon(1)=vpa(g(2)*mu(2)); # Ekin at first site
 
     	theta = zeros(BigFloat,nmax+1);
-    theta[1]=acos(1);
-    for k=2:nmax+1
-        theta[k]=acos(Lam^(z-k+1));
-    end
+    	theta[1]=acos(1);
+    	for k=2:nmax+1
+        	theta[k]=acos(Lam^(z-k+1));
+    	end
 
 	alphas = zeros(BigFloat, nmax, 2)
 	betas = zeros(BigFloat, nmax, 2)
 	# need paralization
-    #parfor l=1:nmax
-    for l=1:nmax
-        g21 = g[1]*mu[1]*(theta[l+1]-theta[l])
-        for k=2:order
-            g21 += 2*g[k]*mu[k]*(sin((k-1)*theta[l+1])-sin((k-1)*theta[l]))/(k-1)
-        end
-        g21 /= pi
+    	#parfor l=1:nmax
+    	for l=1:nmax
+        	g21 = g[1]*mu[1]*(theta[l+1]-theta[l])
+        	for k=2:order
+            		g21 += 2*g[k]*mu[k]*(sin((k-1)*theta[l+1])-sin((k-1)*theta[l]))/(k-1)
+        	end
+        	g21 /= pi
 		alphas[l, 1] = g21
     
-        g22 = g[1]*mu[1]*(theta[l+1]-theta[l])
-        for k = 2:order
-            g22 += 2*(-1)^(k-1)*g[k]*mu[k]*(sin((k-1)*theta[l+1])-sin((k-1)*theta[l]))/(k-1)
-        end
-        g22 /= pi
+        	g22 = g[1]*mu[1]*(theta[l+1]-theta[l])
+        	for k = 2:order
+            		g22 += 2*(-1)^(k-1)*g[k]*mu[k]*(sin((k-1)*theta[l+1])-sin((k-1)*theta[l]))/(k-1)
+        	end
+        	g22 /= pi
 		alphas[l, 2] = g22
 
-        beta1 = g[2]*mu[2]*(theta[l+1]-theta[l])
-        for k = 1:order-2
-            beta1 += (g[k]*mu[k]+g[k+2]*mu[k+2])*(sin(k*theta[l+1])-sin(k*theta[l]))/k
-        end
-        beta1 += g[order-1]*mu[order-1]*(sin((order-1)*theta[l+1])-sin((order-1)*theta[l]))/(order-1)
-        beta1 += g[order]*mu[order]*(sin(order*theta[l+1])-sin(order*theta[l]))/order
-		betas[l, 1] = beta1
+        	beta1 = g[2]*mu[2]*(theta[l+1]-theta[l])
+        	for k = 1:order-2
+            		beta1 += (g[k]*mu[k]+g[k+2]*mu[k+2])*(sin(k*theta[l+1])-sin(k*theta[l]))/k
+        	end
+        	beta1 += g[order-1]*mu[order-1]*(sin((order-1)*theta[l+1])-sin((order-1)*theta[l]))/(order-1)
+        	beta1 += g[order]*mu[order]*(sin(order*theta[l+1])-sin(order*theta[l]))/order
+		betas[l, 1] = beta1./pi
     
-        beta2=g[2]*mu[2]*(theta[l+1]-theta[l]);
-        for k=1:order-2
-            beta2 += (-1)^(k)*(g[k]*mu[k]+g[k+2]*mu[k+2])*(sin(k*theta[l+1])-sin(k*theta[l]))/k;
-        end
-        beta2 += (-1)^(order-1)*g[order-1]*mu[order-1]*(sin((order-1)*theta[l+1])-sin((order-1)*theta[l]))/(order-1);
-        beta2 += (-1)^(order)*g[order]*mu[order]*(sin(order*theta[l+1])-sin(order*theta[l]))/order;
-		betas[l, 2] = beta2
-    end
+        	beta2=g[2]*mu[2]*(theta[l+1]-theta[l]);
+        	for k=1:order-2
+            	beta2 += (-1)^(k)*(g[k]*mu[k]+g[k+2]*mu[k+2])*(sin(k*theta[l+1])-sin(k*theta[l]))/k;
+        	end
+        	beta2 += (-1)^(order-1)*g[order-1]*mu[order-1]*(sin((order-1)*theta[l+1])-sin((order-1)*theta[l]))/(order-1);
+        	beta2 += (-1)^(order)*g[order]*mu[order]*(sin(order*theta[l+1])-sin(order*theta[l]))/order;
+		betas[l, 2] = beta2./pi
+    	end
 
 	return alphas, betas
 end
-=#
 
 
 
@@ -130,7 +129,11 @@ function IntegralToWilsonParam(alphas::Matrix{<:BigFloat},betas::Matrix{<:BigFlo
 	end
 	t = Float64.(t);
 	epsilon = Float64.(epsilon);
-
+	for k=1:N
+		if abs(epsilon[k]) < 1E-100
+			epsilon[k] = 0.0
+		end
+	end
 	return (t,epsilon)
 end
 

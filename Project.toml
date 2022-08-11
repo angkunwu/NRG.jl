@@ -1,8 +1,9 @@
 name = "NRG"
 uuid = "1e0c10db-9dfd-41b5-960d-8ba3bcdd4521"
-authors = ["angkunwu <gilbert.wu14@gmail.com>"]
+authors = ["angkunwu <angkunwu@gmail.com>"]
 version = "0.1.0"
 
 [deps]
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 

@@ -25,8 +25,10 @@ function obtainAlphaBeta(rangevec, fractalband, level, μ; maxlevel = 30)
     end
 
     if level == maxlevel
-        alpha = 1/3^(level)
-	beta = 0.5 * 2/5^level * (sum(fractalband)-2*μ) * height
+	width = temp[2] - temp[1]
+	alpha = width * height #1/3^(level)
+	beta = 0.5 * width * (sum(temp)-2*μ) * height
+	# 0.5 * 2/5^level * (sum(fractalband)-2*μ) * height
         return alpha, beta
     end
 
