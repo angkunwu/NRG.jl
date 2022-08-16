@@ -1,3 +1,4 @@
+#=
 using DelimitedFiles
 using NRG
 using Plots
@@ -31,11 +32,11 @@ plot(T, Simp, xaxis=:log, xlabel=L"T", ylabel=L"S_{imp}",legend=:bottomright)
 hline!([log(4) log(2)], linestyle=:dash)
 
 ChiLoc, T = NRG.ChiLocal(Lam, GS, Szimp, h;Nrelax=100)
+=#
 
-#=
 using NRG
 
-include("WilsonParam.jl")
+#include("WilsonParam.jl")
 #include("FractalFillings.jl")
 
 Precision = 300
@@ -64,7 +65,7 @@ for k = 1:nmax
 end
 
 @time t, epsilon = NRG.IntegralToWilsonParam(alphas, betas, N, 300)
-=#
+
 
 #=
 Precision = 1000
