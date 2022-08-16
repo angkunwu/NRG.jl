@@ -1,4 +1,4 @@
-#=
+
 using DelimitedFiles
 using NRG
 using Plots
@@ -11,7 +11,7 @@ Lam = 3.0
 U = 0.1
 ef = -U/2
 V = 0.05
-Ns = 4000
+Ns = 2000
 wilsons = readdlm("/Users/angkunwu/NRG/test/FlatWilsonParam.txt", ',', Float64)
 t, epsilon = wilsons[:,1], wilsons[:,2]
 h = 10^(-8)
@@ -31,9 +31,9 @@ Simp = Sent .- S0
 plot(T, Simp, xaxis=:log, xlabel=L"T", ylabel=L"S_{imp}",legend=:bottomright)
 hline!([log(4) log(2)], linestyle=:dash)
 
-ChiLoc, T = NRG.ChiLocal(Lam, GS, Szimp, h;Nrelax=100)
-=#
+#ChiLoc, T = NRG.ChiLocal(Lam, GS, Szimp, h;Nrelax=100)
 
+#=
 using NRG
 
 #include("WilsonParam.jl")
@@ -65,7 +65,7 @@ for k = 1:nmax
 end
 
 @time t, epsilon = NRG.IntegralToWilsonParam(alphas, betas, N, 300)
-
+=#
 
 #=
 Precision = 1000
