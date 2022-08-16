@@ -3,8 +3,7 @@ module NRG
 using LinearAlgebra
 using SparseArrays
 
-#export plusTwo
-#plusTwo(x) = return x+2
+export KPMmomentToIntegral, IntegralToWilsonParam
 
 include("WilsonParam.jl")
 include("FractalFillings.jl")
