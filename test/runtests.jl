@@ -34,5 +34,5 @@ ttest, epsilontest = wilsons[:,1], wilsons[:,2]
 	@time t, epsilon = IntegralToWilsonParam(alphas, betas, N; Precision=Precision)
 
 	@test t ≈ ttest
-	@test epsilon ≈ epsilon
+	@test epsilon ≈ epsilontest
 end
