@@ -10,7 +10,7 @@
 	# Output
 	integrals: alpha, beta
 """
-function KPMmomentToIntegral(mu::Vector{<:Number}, Lam::Number; Precision::Int64=300, nmax::Int64=100, z::Number=0.0)
+function KPMmomentToIntegral(mu::Vector{<:Number}, Lam::Number; Precision::Int64=300, nmax::Int64=300, z::Number=0.0)
     	order = size(mu, 1) 
     	BinaryPrec = Int(round(log(10)*Precision/log(2))) # convert precision to binary precision
     	setprecision(BinaryPrec)
