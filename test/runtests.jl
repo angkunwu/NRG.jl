@@ -21,7 +21,7 @@ ttest, epsilontest = wilsons[:,1], wilsons[:,2]
 	Threads.@threads for k = 3:order
 		mus[k] = (((-1)^(k-2)-1)/(k-2)-((-1)^k-1)/k)/4
 	end
-	@time alphas, betas = KPMmomentToIntegral(mus, Lam, Precision, nmax, N, z)
+	@time alphas, betas = KPMmomentToIntegral(mus, Lam; Precision=Precision, nmax=nmax, z=z)
 
 	alphas = zeros(BigFloat,nmax,2)
 	betas = zeros(BigFloat,nmax,2)
@@ -31,7 +31,7 @@ ttest, epsilontest = wilsons[:,1], wilsons[:,2]
 		alphas[k,2] = alphas[k,1]
 		betas[k,2] = -betas[k,1]
 	end
-	@time t, epsilon = IntegralToWilsonParam(alphas, betas, N, 300)
+	@time t, epsilon = IntegralToWilsonParam(alphas, betas, N; Precision=Precision)
 
 	@test t ≈ ttest
 	@test epsilon ≈ epsilon
