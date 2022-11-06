@@ -21,7 +21,7 @@ ttest, epsilontest = wilsons[:,1], wilsons[:,2]
 	Threads.@threads for k = 3:order
 		mus[k] = (((-1)^(k-2)-1)/(k-2)-((-1)^k-1)/k)/4
 	end
-	@time alphas, betas = KPMmomentToIntegral(mus, Lam; Precision=Precision, nmax=nmax, z=z)
+	@time alphas, betas = KPMmomentToIntegral(mus, Lam; Precision=Precision, nmax=nmax, z=z, threading=true)
 
 	alphas = zeros(BigFloat,nmax,2)
 	betas = zeros(BigFloat,nmax,2)

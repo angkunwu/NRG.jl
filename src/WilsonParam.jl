@@ -1,4 +1,38 @@
 """
+	Shift logarithmic grid from [-1,1] by b and rescale to [-1, 1]
+	Precision: precision of numerics
+        Lam: Logarithmic discretization parameter
+        # implicit input
+        nmax: Set max # of logarithmic intervals or min range
+        N: maximum Wilson chain sites
+        z: z average z in [0,1)
+"""
+function shiftLogarithmicGrid(Lam::Number, b::Number; 
+                Precision::Int64=300, nmax::Int64=300, z::Number=0.0
+		)
+	BinaryPrec = Int(round(log(10)*Precision/log(2))) # convert precision to binary precision
+        setprecision(BinaryPrec)
+
+	Xmp = zeros(BigFloat,nmax+1); # positve side
+        Xmn = zeros(BigFloat,nmax+1); # negative
+	if b < 0
+		Xmp[1]=1.0
+		Xmn[1]=-1.0+b
+        	for k=2:nmax+1
+			Xmp[k] = (1.0-b)*Lam^(z-k+1)+b
+			Xmn[k] = -Lam^(z-k+1)+b
+        	end
+	else
+		Xmp[1] = 1.0+b
+		Xmn[1] = -1.0
+		for k=2:nmax+1
+                        Xmp[k] = Lam^(z-k+1)+b
+			Xmn[k] = -(1.0+b)*Lam^(z-k+1)+b
+                end
+	end
+	return Xmp, Xmn
+end
+"""
         Use KPM moment to compute logarithmic integrals with Jackson Kernel
         With build-in paralization
         Precision: precision of numerics
@@ -7,10 +41,12 @@
         nmax: Set max # of logarithmic intervals or min range
         N: maximum Wilson chain sites
         z: z average z in [0,1)
+	threading: threading for summation, default is false
 	# Output
 	integrals: alpha, beta
 """
-function KPMmomentToIntegral(mu::Vector{<:Number}, Lam::Number; Precision::Int64=300, nmax::Int64=300, z::Number=0.0)
+function KPMmomentToIntegral(mu::Vector{<:Number}, Lam::Number; 
+		Precision::Int64=300, nmax::Int64=300, z::Number=0.0, threading::Bool=false)
     	order = size(mu, 1) 
     	BinaryPrec = Int(round(log(10)*Precision/log(2))) # convert precision to binary precision
     	setprecision(BinaryPrec)
@@ -28,39 +64,72 @@ function KPMmomentToIntegral(mu::Vector{<:Number}, Lam::Number; Precision::Int64
 
 	alphas = zeros(BigFloat, nmax, 2)
 	betas = zeros(BigFloat, nmax, 2)
-	# need paralization
-    	#parfor l=1:nmax
-    	for l=1:nmax
-        	g21 = g[1]*mu[1]*(theta[l+1]-theta[l])
-        	Threads.@threads for k=2:order
-            		g21 += 2*g[k]*mu[k]*(sin((k-1)*theta[l+1])-sin((k-1)*theta[l]))/(k-1)
-        	end
-        	g21 /= pi
-		alphas[l, 1] = g21
+	if threading
+		# need paralization
+    		for l=1:nmax
+        		g21 = g[1]*mu[1]*(theta[l+1]-theta[l])
+        		Threads.@threads for k=2:order
+            			g21 += 2*g[k]*mu[k]*(sin((k-1)*theta[l+1])-sin((k-1)*theta[l]))/(k-1)
+        		end
+        		g21 /= pi
+			alphas[l, 1] = g21
     
-        	g22 = g[1]*mu[1]*(theta[l+1]-theta[l])
-        	Threads.@threads for k = 2:order
-            		g22 += 2*(-1)^(k-1)*g[k]*mu[k]*(sin((k-1)*theta[l+1])-sin((k-1)*theta[l]))/(k-1)
-        	end
-        	g22 /= pi
-		alphas[l, 2] = g22
+        		g22 = g[1]*mu[1]*(theta[l+1]-theta[l])
+        		Threads.@threads for k = 2:order
+            			g22 += 2*(-1)^(k-1)*g[k]*mu[k]*(sin((k-1)*theta[l+1])-sin((k-1)*theta[l]))/(k-1)
+        		end
+        		g22 /= pi
+			alphas[l, 2] = g22
 
-        	beta1 = g[2]*mu[2]*(theta[l+1]-theta[l])
-        	Threads.@threads for k = 1:order-2
-            		beta1 += (g[k]*mu[k]+g[k+2]*mu[k+2])*(sin(k*theta[l+1])-sin(k*theta[l]))/k
-        	end
-        	beta1 += g[order-1]*mu[order-1]*(sin((order-1)*theta[l+1])-sin((order-1)*theta[l]))/(order-1)
-        	beta1 += g[order]*mu[order]*(sin(order*theta[l+1])-sin(order*theta[l]))/order
-		betas[l, 1] = beta1./pi
+        		beta1 = g[2]*mu[2]*(theta[l+1]-theta[l])
+        		Threads.@threads for k = 1:order-2
+            			beta1 += (g[k]*mu[k]+g[k+2]*mu[k+2])*(sin(k*theta[l+1])-sin(k*theta[l]))/k
+        		end
+        		beta1 += g[order-1]*mu[order-1]*(sin((order-1)*theta[l+1])-sin((order-1)*theta[l]))/(order-1)
+        		beta1 += g[order]*mu[order]*(sin(order*theta[l+1])-sin(order*theta[l]))/order
+			betas[l, 1] = beta1./pi
     
-        	beta2=g[2]*mu[2]*(theta[l+1]-theta[l]);
-        	Threads.@threads for k=1:order-2
-            	beta2 += (-1)^(k)*(g[k]*mu[k]+g[k+2]*mu[k+2])*(sin(k*theta[l+1])-sin(k*theta[l]))/k;
-        	end
-        	beta2 += (-1)^(order-1)*g[order-1]*mu[order-1]*(sin((order-1)*theta[l+1])-sin((order-1)*theta[l]))/(order-1);
-        	beta2 += (-1)^(order)*g[order]*mu[order]*(sin(order*theta[l+1])-sin(order*theta[l]))/order;
-		betas[l, 2] = beta2./pi
-    	end
+        		beta2=g[2]*mu[2]*(theta[l+1]-theta[l]);
+        		Threads.@threads for k=1:order-2
+            			beta2 += (-1)^(k)*(g[k]*mu[k]+g[k+2]*mu[k+2])*(sin(k*theta[l+1])-sin(k*theta[l]))/k;
+        		end
+        		beta2 += (-1)^(order-1)*g[order-1]*mu[order-1]*(sin((order-1)*theta[l+1])-sin((order-1)*theta[l]))/(order-1);
+        		beta2 += (-1)^(order)*g[order]*mu[order]*(sin(order*theta[l+1])-sin(order*theta[l]))/order;
+			betas[l, 2] = beta2./pi
+    		end
+	else
+		for l=1:nmax
+                        g21 = g[1]*mu[1]*(theta[l+1]-theta[l])
+                        for k=2:order
+                                g21 += 2*g[k]*mu[k]*(sin((k-1)*theta[l+1])-sin((k-1)*theta[l]))/(k-1)
+                        end
+                        g21 /= pi
+                        alphas[l, 1] = g21
+
+                        g22 = g[1]*mu[1]*(theta[l+1]-theta[l])
+                        for k = 2:order
+                                g22 += 2*(-1)^(k-1)*g[k]*mu[k]*(sin((k-1)*theta[l+1])-sin((k-1)*theta[l]))/(k-1)
+                        end
+                        g22 /= pi
+                        alphas[l, 2] = g22
+
+                        beta1 = g[2]*mu[2]*(theta[l+1]-theta[l])
+                        for k = 1:order-2
+                                beta1 += (g[k]*mu[k]+g[k+2]*mu[k+2])*(sin(k*theta[l+1])-sin(k*theta[l]))/k
+                        end
+                        beta1 += g[order-1]*mu[order-1]*(sin((order-1)*theta[l+1])-sin((order-1)*theta[l]))/(order-1)
+                        beta1 += g[order]*mu[order]*(sin(order*theta[l+1])-sin(order*theta[l]))/order
+                        betas[l, 1] = beta1./pi
+
+                        beta2=g[2]*mu[2]*(theta[l+1]-theta[l]);
+                        for k=1:order-2
+                                beta2 += (-1)^(k)*(g[k]*mu[k]+g[k+2]*mu[k+2])*(sin(k*theta[l+1])-sin(k*theta[l]))/k;
+                        end
+                        beta2 += (-1)^(order-1)*g[order-1]*mu[order-1]*(sin((order-1)*theta[l+1])-sin((order-1)*theta[l]))/(order-1);
+			beta2 += (-1)^(order)*g[order]*mu[order]*(sin(order*theta[l+1])-sin(order*theta[l]))/order;
+                        betas[l, 2] = beta2./pi
+		end
+	end
 
 	return alphas, betas
 end
