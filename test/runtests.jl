@@ -8,7 +8,8 @@ ttest, epsilontest = wilsons[:,1], wilsons[:,2]
 
 @testset "Wilson Params" begin
 	Precision = 300
-	setprecision(Precision)
+	BinaryPrec = Int(round(log(10)*Precision/log(2))) # convert precision to binary precision
+        setprecision(BinaryPrec)
 	nmax = 100
 	N = 35
 	Lam = BigFloat(3.0)
