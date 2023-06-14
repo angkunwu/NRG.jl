@@ -3,7 +3,7 @@ using DelimitedFiles
 
 @show Threads.nthreads()
 
-wilsons = readdlm("/Users/angkunwu/NRG/test/FlatWilsonParam.txt", ',', Float64)
+wilsons = readdlm("./FlatWilsonParam.txt", ',', Float64)
 ttest, epsilontest = wilsons[:,1], wilsons[:,2]
 
 @testset "Wilson Params" begin
