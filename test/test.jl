@@ -12,7 +12,7 @@ U = 0.1
 ef = -U/2
 V = 0.05
 Ns = 2000
-wilsons = readdlm("/Users/angkunwu/NRG/test/FlatWilsonParam.txt", ',', Float64)
+wilsons = readdlm("./FlatWilsonParam.txt", ',', Float64)
 t, epsilon = wilsons[:,1], wilsons[:,2]
 h = 10^(-8)
 GS, GSSz, Szimp = NRG.runNRG(N,Lam,epsilon,t,U,ef,V,Ns;h=h);
